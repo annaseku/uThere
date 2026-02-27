@@ -181,24 +181,33 @@ export type Database = {
         Row: {
           created_at: string | null
           device_id: string | null
+          email: string | null
           is_sharing_location: boolean | null
           name: string
+          notifications_enabled: boolean | null
+          phone: string | null
           photo_url: string | null
           user_id: string
         }
         Insert: {
           created_at?: string | null
           device_id?: string | null
+          email?: string | null
           is_sharing_location?: boolean | null
           name: string
+          notifications_enabled?: boolean | null
+          phone?: string | null
           photo_url?: string | null
           user_id: string
         }
         Update: {
           created_at?: string | null
           device_id?: string | null
+          email?: string | null
           is_sharing_location?: boolean | null
           name?: string
+          notifications_enabled?: boolean | null
+          phone?: string | null
           photo_url?: string | null
           user_id?: string
         }
@@ -209,7 +218,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      is_group_member: {
+        Args: { _group_id: number; _user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
