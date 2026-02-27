@@ -4,10 +4,10 @@ import GroupSelector from "./GroupSelector";
 import HouseView from "./HouseView";
 import MemberCard from "./MemberCard";
 import GroupSettingsDialog from "./GroupSettingsDialog";
-import { Settings } from "lucide-react";
+import CreateGroupDialog from "./CreateGroupDialog";
+import { Settings, Plus, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { memberStatuses, groups as mockGroups } from "@/lib/mockData";
 import { getLocationStatus } from "@/lib/locationUtils";
 
 interface GroupData {
@@ -21,6 +21,7 @@ const MembersTab = () => {
   const [groups, setGroups] = useState<GroupData[]>([]);
   const [selectedGroup, setSelectedGroup] = useState<GroupData | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [createGroupOpen, setCreateGroupOpen] = useState(false);
   const [members, setMembers] = useState<any[]>([]);
 
   const fetchGroups = async () => {
@@ -44,41 +45,35 @@ const MembersTab = () => {
         setSelectedGroup(mapped[0]);
       }
     } else {
-      const mock = mockGroups.map(g => ({ group_id: g.group_id, name: g.name }));
-      setGroups(mock);
-      setSelectedGroup(mock[0]);
+      setGroups([]);
+      setSelectedGroup(null);
     }
   };
 
   const fetchMembers = async () => {
     if (!selectedGroup || !user) {
-      if (selectedGroup) {
-        setMembers(memberStatuses[selectedGroup.group_id] || []);
-      }
+      setMembers([]);
       return;
     }
 
     const groupId = Number(selectedGroup.group_id);
 
-    // Fetch group members with user info
     const { data: memberRows } = await supabase
       .from("group_members")
       .select("user_id, role, users(name, photo_url, is_sharing_location, email)")
       .eq("group_id", groupId);
 
     if (!memberRows || memberRows.length === 0) {
-      setMembers(memberStatuses[selectedGroup.group_id] || []);
+      setMembers([]);
       return;
     }
 
-    // Fetch all member locations
     const memberUserIds = memberRows.map(m => m.user_id);
     const { data: locations } = await supabase
       .from("user_locations")
       .select("*")
       .in("user_id", memberUserIds);
 
-    // Fetch all members' places & visibility for this group
     const { data: allPlaces } = await supabase
       .from("places")
       .select("*")
@@ -89,11 +84,9 @@ const MembersTab = () => {
       .select("*")
       .eq("group_id", groupId);
 
-    // Build a map of visibility: place_id -> is_visible (default true)
     const visMap = new Map<number, boolean>();
     visibilityRows?.forEach(v => visMap.set(v.place_id, v.is_visible ?? true));
 
-    // Geocode primary address to coords (we use address string matching instead)
     const primaryAddr = selectedGroup.primary_address?.toLowerCase().trim();
 
     const mapped = memberRows.map(m => {
@@ -101,10 +94,9 @@ const MembersTab = () => {
       const loc = locations?.find(l => l.user_id === m.user_id);
       const userPlaces = (allPlaces ?? []).filter(p => (p as any).user_id === m.user_id);
 
-      // Filter places visible to this group
       const visiblePlaces = userPlaces.filter(p => {
         const vis = visMap.get(p.place_id);
-        return vis === undefined ? true : vis; // default visible
+        return vis === undefined ? true : vis;
       });
 
       let status = "elsewhere";
@@ -115,7 +107,6 @@ const MembersTab = () => {
         status = "elsewhere";
         placeName = "Location hidden";
       } else if (loc) {
-        // Check if at any visible place
         const locResult = getLocationStatus(loc.latitude, loc.longitude, visiblePlaces.map(p => ({
           place_id: p.place_id,
           label: p.label,
@@ -129,8 +120,6 @@ const MembersTab = () => {
         status = locResult.status;
         placeName = locResult.placeName;
 
-        // Check if at the group's primary address
-        // Match by checking if the user's matched place address matches the group primary address
         if (primaryAddr && locResult.status !== "elsewhere") {
           const matchedPlace = visiblePlaces.find(p => p.label.toLowerCase() === locResult.placeName.toLowerCase());
           if (matchedPlace) {
@@ -144,7 +133,7 @@ const MembersTab = () => {
 
       const timeDiff = loc?.timestamp
         ? getTimeDiff(new Date(loc.timestamp))
-        : "Unknown";
+        : "—";
 
       return {
         user: {
@@ -165,6 +154,35 @@ const MembersTab = () => {
 
   useEffect(() => { fetchGroups(); }, [user]);
   useEffect(() => { fetchMembers(); }, [selectedGroup]);
+
+  // No groups — show empty state
+  if (groups.length === 0) {
+    return (
+      <div className="px-4 pt-2 pb-4">
+        <h1 className="text-2xl font-bold text-foreground tracking-tight mb-6">Members</h1>
+        <div className="ios-card p-8 flex flex-col items-center gap-4 text-center">
+          <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
+            <Users size={28} className="text-primary" />
+          </div>
+          <div>
+            <div className="text-[17px] font-semibold text-foreground">No groups yet</div>
+            <div className="text-[14px] text-muted-foreground mt-1">Create a group to start tracking locations with your family or team</div>
+          </div>
+          <button
+            onClick={() => setCreateGroupOpen(true)}
+            className="mt-2 px-6 py-2.5 rounded-full bg-primary text-primary-foreground text-[15px] font-medium"
+          >
+            Create Group
+          </button>
+        </div>
+        <CreateGroupDialog
+          open={createGroupOpen}
+          onClose={() => setCreateGroupOpen(false)}
+          onCreated={fetchGroups}
+        />
+      </div>
+    );
+  }
 
   if (!selectedGroup) return null;
 
@@ -198,6 +216,11 @@ const MembersTab = () => {
         >
           <HouseView members={members} />
           <div className="ios-card overflow-hidden divide-y divide-border">
+            {members.length === 0 && (
+              <div className="px-4 py-6 text-center text-[14px] text-muted-foreground">
+                No members in this group yet
+              </div>
+            )}
             {members.map((member, i) => (
               <MemberCard key={member.user.user_id} member={member} index={i} />
             ))}
