@@ -2,11 +2,15 @@ import { ChevronRight, Bell, Shield, Users, HelpCircle, LogOut, MapPin } from "l
 import { Switch } from "@/components/ui/switch";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useGroupPrivacy } from "@/hooks/useGroupPrivacy";
+import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 const SettingsTab = () => {
   const { user, updateUser } = useCurrentUser();
   const { privacy, toggleVisibility } = useGroupPrivacy();
+  const { signOut } = useAuth();
+  const navigate = useNavigate();
 
   // Group privacy entries by place
   const placeGroups = privacy.reduce<Record<number, { label: string; entries: typeof privacy }>>((acc, entry) => {
@@ -16,6 +20,11 @@ const SettingsTab = () => {
     acc[entry.place_id].entries.push(entry);
     return acc;
   }, {});
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/auth");
+  };
 
   return (
     <div className="px-4 pt-2 pb-4 space-y-5">
@@ -126,7 +135,10 @@ const SettingsTab = () => {
 
       {/* Sign Out */}
       <div className="ios-card overflow-hidden">
-        <button className="w-full flex items-center gap-3 px-4 py-3 active:bg-accent transition-colors">
+        <button
+          onClick={handleSignOut}
+          className="w-full flex items-center gap-3 px-4 py-3 active:bg-accent transition-colors"
+        >
           <div className="w-8 h-8 rounded-lg bg-destructive/10 flex items-center justify-center flex-shrink-0">
             <LogOut size={16} className="text-destructive" />
           </div>
