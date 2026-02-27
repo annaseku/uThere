@@ -11,14 +11,8 @@ export interface Place {
   is_default_home: boolean;
 }
 
-// Mock places until auth
-const MOCK_PLACES: Place[] = [
-  { place_id: 1, label: "Home", address: "12 Red Gum Crescent", latitude: -27.4698, longitude: 153.0251, radius_meters: 100, is_default_home: true },
-  { place_id: 2, label: "Work", address: "100 Eagle St, Brisbane", latitude: -27.4679, longitude: 153.0281, radius_meters: 100, is_default_home: false },
-];
-
 export function usePlaces() {
-  const [places, setPlaces] = useState<Place[]>(MOCK_PLACES);
+  const [places, setPlaces] = useState<Place[]>([]);
   const [loading, setLoading] = useState(false);
 
   const fetchPlaces = async () => {
@@ -50,13 +44,9 @@ export function usePlaces() {
 
   const addPlace = async (place: Omit<Place, "place_id">) => {
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      // Mock mode
-      setPlaces(prev => [...prev, { ...place, place_id: Date.now() }]);
-      return;
-    }
+    if (!user) return;
     
-    const { data } = await supabase.from("places").insert({
+    await supabase.from("places").insert({
       label: place.label,
       address: place.address,
       latitude: place.latitude,
@@ -64,17 +54,14 @@ export function usePlaces() {
       radius_meters: place.radius_meters,
       is_default_home: place.is_default_home,
       user_id: user.id,
-    } as any).select().single();
+    } as any);
     
-    if (data) fetchPlaces();
+    fetchPlaces();
   };
 
   const updatePlace = async (place_id: number, updates: Partial<Place>) => {
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      setPlaces(prev => prev.map(p => p.place_id === place_id ? { ...p, ...updates } : p));
-      return;
-    }
+    if (!user) return;
     
     await supabase.from("places").update(updates as any).eq("place_id", place_id);
     fetchPlaces();
@@ -82,10 +69,7 @@ export function usePlaces() {
 
   const deletePlace = async (place_id: number) => {
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      setPlaces(prev => prev.filter(p => p.place_id !== place_id));
-      return;
-    }
+    if (!user) return;
     
     await supabase.from("places").delete().eq("place_id", place_id);
     fetchPlaces();

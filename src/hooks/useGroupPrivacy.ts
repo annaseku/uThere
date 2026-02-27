@@ -9,34 +9,27 @@ export interface PlaceGroupVisibility {
   is_visible: boolean;
 }
 
-// Mock data
-const MOCK_PRIVACY: PlaceGroupVisibility[] = [
-  { place_id: 1, place_label: "Home", group_id: 1, group_name: "Smith Household", is_visible: true },
-  { place_id: 1, place_label: "Home", group_id: 2, group_name: "Work Team", is_visible: true },
-  { place_id: 2, place_label: "Work", group_id: 1, group_name: "Smith Household", is_visible: true },
-  { place_id: 2, place_label: "Work", group_id: 2, group_name: "Work Team", is_visible: true },
-];
-
 export function useGroupPrivacy() {
-  const [privacy, setPrivacy] = useState<PlaceGroupVisibility[]>(MOCK_PRIVACY);
+  const [privacy, setPrivacy] = useState<PlaceGroupVisibility[]>([]);
 
   const fetchPrivacy = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    // Get user's places
     const { data: places } = await supabase
       .from("places")
       .select("place_id, label")
       .eq("user_id", user.id);
 
-    // Get user's groups
     const { data: memberships } = await supabase
       .from("group_members")
       .select("group_id, groups(name)")
       .eq("user_id", user.id);
 
-    if (!places || !memberships) return;
+    if (!places || !memberships || places.length === 0 || memberships.length === 0) {
+      setPrivacy([]);
+      return;
+    }
 
     const results: PlaceGroupVisibility[] = [];
 
@@ -69,21 +62,35 @@ export function useGroupPrivacy() {
   useEffect(() => { fetchPrivacy(); }, []);
 
   const toggleVisibility = async (place_id: number, group_id: number) => {
-    // Optimistic update
-    setPrivacy(prev => prev.map(p =>
-      p.place_id === place_id && p.group_id === group_id
-        ? { ...p, is_visible: !p.is_visible }
-        : p
-    ));
-
     const current = privacy.find(p => p.place_id === place_id && p.group_id === group_id);
     const newVal = !(current?.is_visible ?? true);
 
-    await supabase.from("place_visibility").upsert({
-      place_id,
-      group_id,
-      is_visible: newVal,
-    }, { onConflict: "place_id,group_id" });
+    // Optimistic update
+    setPrivacy(prev => prev.map(p =>
+      p.place_id === place_id && p.group_id === group_id
+        ? { ...p, is_visible: newVal }
+        : p
+    ));
+
+    // Check if row exists first
+    const { data: existing } = await supabase
+      .from("place_visibility")
+      .select("place_id")
+      .eq("place_id", place_id)
+      .eq("group_id", group_id)
+      .single();
+
+    if (existing) {
+      await supabase
+        .from("place_visibility")
+        .update({ is_visible: newVal })
+        .eq("place_id", place_id)
+        .eq("group_id", group_id);
+    } else {
+      await supabase
+        .from("place_visibility")
+        .insert({ place_id, group_id, is_visible: newVal });
+    }
   };
 
   return { privacy, toggleVisibility, refetch: fetchPrivacy };
