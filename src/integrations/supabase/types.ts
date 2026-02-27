@@ -55,16 +55,19 @@ export type Database = {
           created_at: string | null
           group_id: number
           name: string
+          primary_address: string | null
         }
         Insert: {
           created_at?: string | null
           group_id?: number
           name: string
+          primary_address?: string | null
         }
         Update: {
           created_at?: string | null
           group_id?: number
           name?: string
+          primary_address?: string | null
         }
         Relationships: []
       }
