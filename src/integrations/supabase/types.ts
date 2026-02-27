@@ -106,6 +106,7 @@ export type Database = {
       }
       places: {
         Row: {
+          address: string | null
           created_at: string | null
           is_default_home: boolean | null
           label: string
@@ -116,6 +117,7 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          address?: string | null
           created_at?: string | null
           is_default_home?: boolean | null
           label: string
@@ -126,6 +128,7 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          address?: string | null
           created_at?: string | null
           is_default_home?: boolean | null
           label?: string
