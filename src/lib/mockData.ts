@@ -55,14 +55,14 @@ export const groups: Group[] = [
 
 export const memberStatuses: Record<string, MemberStatus[]> = {
   g1: [
-    { user: users[0], status: "home", placeName: "Anna's Home", lastUpdated: "3 min ago" },
+    { user: users[0], status: "home", placeName: "Home", lastUpdated: "3 min ago" },
     { user: users[1], status: "home", placeName: "Home", lastUpdated: "1 hour ago" },
     { user: users[2], status: "home", placeName: "Home", lastUpdated: "Just now" },
     { user: users[3], status: "school", placeName: "Lincoln High", lastUpdated: "25 min ago" },
   ],
   g2: [
     { user: users[0], status: "work", placeName: "Office", lastUpdated: "10 min ago" },
-    { user: users[4], status: "elsewhere", placeName: "Café Bloom", lastUpdated: "5 min ago" },
+    { user: users[4], status: "elsewhere", placeName: "Elsewhere", lastUpdated: "5 min ago" },
     { user: users[5], status: "work", placeName: "Office", lastUpdated: "2 min ago" },
   ],
 };
