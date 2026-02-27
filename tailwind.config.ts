@@ -47,6 +47,16 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        ios: {
+          green: "hsl(var(--ios-green))",
+          orange: "hsl(var(--ios-orange))",
+          red: "hsl(var(--ios-red))",
+          blue: "hsl(var(--ios-blue))",
+          teal: "hsl(var(--ios-teal))",
+          separator: "hsl(var(--ios-separator))",
+          "tab-inactive": "hsl(var(--ios-tab-inactive))",
+          "tab-active": "hsl(var(--ios-tab-active))",
+        },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
