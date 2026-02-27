@@ -19,7 +19,7 @@ const GEOCODE_API_KEY = "69a12ca80288c284364353hdxd915e3";
 
 const PlaceEditor = ({ open, onClose, place, onSave, onDelete }: PlaceEditorProps) => {
   const [label, setLabel] = useState(place?.label ?? "");
-  const [address, setAddress] = useState("");
+  const [address, setAddress] = useState(place?.address ?? "");
   const [latitude, setLatitude] = useState(String(place?.latitude ?? ""));
   const [longitude, setLongitude] = useState(String(place?.longitude ?? ""));
   const [radius, setRadius] = useState(String(place?.radius_meters ?? 100));
@@ -52,6 +52,7 @@ const PlaceEditor = ({ open, onClose, place, onSave, onDelete }: PlaceEditorProp
     if (!label.trim() || !latitude || !longitude) return;
     onSave({
       label: label.trim(),
+      address: address.trim() || null,
       latitude: parseFloat(latitude),
       longitude: parseFloat(longitude),
       radius_meters: parseInt(radius) || 100,

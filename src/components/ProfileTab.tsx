@@ -125,7 +125,7 @@ const ProfileTab = () => {
               <div className="flex-1 min-w-0 text-left">
                 <div className="text-[15px] font-medium text-foreground">{place.label}</div>
                 <div className="text-[13px] text-muted-foreground truncate">
-                  {place.label}{place.is_default_home ? " · Default Home" : ""}
+                  {place.address || place.label}{place.is_default_home ? " · Default Home" : ""}
                 </div>
               </div>
               <ChevronRight size={16} className="text-muted-foreground/40 flex-shrink-0" />
