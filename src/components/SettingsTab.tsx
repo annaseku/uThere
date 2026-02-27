@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { ChevronRight, Bell, Shield, Users, HelpCircle, LogOut, MapPin } from "lucide-react";
+import { ChevronRight, Bell, Shield, Users, HelpCircle, LogOut, MapPin, Plus, Palette, Moon, Sun } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useGroupPrivacy } from "@/hooks/useGroupPrivacy";
@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import GroupSettingsDialog from "./GroupSettingsDialog";
+import CreateGroupDialog from "./CreateGroupDialog";
 
 interface GroupItem {
   group_id: string;
@@ -15,6 +16,14 @@ interface GroupItem {
   primary_address?: string;
   role?: string;
 }
+
+const COLOR_SCHEMES = [
+  { id: "theme-blue", label: "Blue", color: "hsl(211 100% 50%)" },
+  { id: "theme-purple", label: "Purple", color: "hsl(270 70% 55%)" },
+  { id: "theme-green", label: "Green", color: "hsl(152 60% 42%)" },
+  { id: "theme-orange", label: "Orange", color: "hsl(24 95% 53%)" },
+  { id: "theme-rose", label: "Rose", color: "hsl(346 77% 55%)" },
+];
 
 const SettingsTab = () => {
   const { user, updateUser } = useCurrentUser();
@@ -24,8 +33,10 @@ const SettingsTab = () => {
 
   const [groups, setGroups] = useState<GroupItem[]>([]);
   const [editingGroup, setEditingGroup] = useState<GroupItem | null>(null);
+  const [createGroupOpen, setCreateGroupOpen] = useState(false);
+  const [currentTheme, setCurrentTheme] = useState(() => localStorage.getItem("color-theme") || "theme-blue");
+  const [isDark, setIsDark] = useState(() => document.documentElement.classList.contains("dark"));
 
-  // Group privacy entries by place
   const placeGroups = privacy.reduce<Record<number, { label: string; entries: typeof privacy }>>((acc, entry) => {
     if (!acc[entry.place_id]) {
       acc[entry.place_id] = { label: entry.place_label, entries: [] };
@@ -55,6 +66,26 @@ const SettingsTab = () => {
 
   useEffect(() => { fetchGroups(); }, [authUser]);
 
+  const applyTheme = (themeId: string) => {
+    const root = document.documentElement;
+    COLOR_SCHEMES.forEach(s => root.classList.remove(s.id));
+    root.classList.add(themeId);
+    setCurrentTheme(themeId);
+    localStorage.setItem("color-theme", themeId);
+  };
+
+  const toggleDarkMode = () => {
+    const root = document.documentElement;
+    if (isDark) {
+      root.classList.remove("dark");
+      localStorage.setItem("dark-mode", "false");
+    } else {
+      root.classList.add("dark");
+      localStorage.setItem("dark-mode", "true");
+    }
+    setIsDark(!isDark);
+  };
+
   const handleSignOut = async () => {
     await signOut();
     navigate("/auth");
@@ -63,6 +94,47 @@ const SettingsTab = () => {
   return (
     <div className="px-4 pt-2 pb-4 space-y-5">
       <h1 className="text-2xl font-bold text-foreground tracking-tight">Settings</h1>
+
+      {/* Appearance */}
+      <div>
+        <div className="text-[13px] font-medium text-muted-foreground uppercase tracking-wider px-1 mb-2">
+          Appearance
+        </div>
+        <div className="ios-card overflow-hidden">
+          <div className="flex items-center gap-3 px-4 py-3 ios-separator">
+            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+              {isDark ? <Moon size={16} className="text-primary" /> : <Sun size={16} className="text-primary" />}
+            </div>
+            <span className="flex-1 text-[15px] font-medium text-foreground">Dark Mode</span>
+            <Switch checked={isDark} onCheckedChange={toggleDarkMode} />
+          </div>
+          <div className="px-4 py-3">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <Palette size={16} className="text-primary" />
+              </div>
+              <span className="text-[15px] font-medium text-foreground">Color Scheme</span>
+            </div>
+            <div className="flex gap-3 ml-11">
+              {COLOR_SCHEMES.map(scheme => (
+                <button
+                  key={scheme.id}
+                  onClick={() => applyTheme(scheme.id)}
+                  className="flex flex-col items-center gap-1.5"
+                >
+                  <div
+                    className={`w-8 h-8 rounded-full border-2 transition-all ${
+                      currentTheme === scheme.id ? "border-foreground scale-110" : "border-transparent"
+                    }`}
+                    style={{ backgroundColor: scheme.color }}
+                  />
+                  <span className="text-[11px] text-muted-foreground">{scheme.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Notifications */}
       <div>
@@ -86,7 +158,7 @@ const SettingsTab = () => {
         </div>
       </div>
 
-      {/* Privacy - Per-Place Per-Group Location Visibility */}
+      {/* Privacy */}
       <div>
         <div className="text-[13px] font-medium text-muted-foreground uppercase tracking-wider px-1 mb-2">
           Privacy
@@ -142,8 +214,16 @@ const SettingsTab = () => {
 
       {/* Groups */}
       <div>
-        <div className="text-[13px] font-medium text-muted-foreground uppercase tracking-wider px-1 mb-2">
-          Groups
+        <div className="flex items-center justify-between px-1 mb-2">
+          <div className="text-[13px] font-medium text-muted-foreground uppercase tracking-wider">
+            Groups
+          </div>
+          <button
+            onClick={() => setCreateGroupOpen(true)}
+            className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center"
+          >
+            <Plus size={14} className="text-primary" />
+          </button>
         </div>
         <div className="ios-card overflow-hidden">
           {groups.length === 0 && (
@@ -201,7 +281,7 @@ const SettingsTab = () => {
         </button>
       </div>
 
-      {/* Group Settings Dialog */}
+      {/* Dialogs */}
       {editingGroup && (
         <GroupSettingsDialog
           open={!!editingGroup}
@@ -210,6 +290,11 @@ const SettingsTab = () => {
           onUpdated={() => { fetchGroups(); setEditingGroup(null); }}
         />
       )}
+      <CreateGroupDialog
+        open={createGroupOpen}
+        onClose={() => setCreateGroupOpen(false)}
+        onCreated={fetchGroups}
+      />
     </div>
   );
 };

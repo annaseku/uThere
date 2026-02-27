@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -7,6 +8,14 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
+
+// Apply saved theme on load
+(() => {
+  const theme = localStorage.getItem("color-theme") || "theme-blue";
+  const dark = localStorage.getItem("dark-mode") === "true";
+  document.documentElement.classList.add(theme);
+  if (dark) document.documentElement.classList.add("dark");
+})();
 
 const queryClient = new QueryClient();
 
