@@ -5,7 +5,9 @@ import HouseView from "./HouseView";
 import MemberCard from "./MemberCard";
 import GroupSettingsDialog from "./GroupSettingsDialog";
 import CreateGroupDialog from "./CreateGroupDialog";
-import { Settings, Plus, Users } from "lucide-react";
+import JoinGroupDialog from "./JoinGroupDialog";
+import AddMemberDialog from "./AddMemberDialog";
+import { Settings, Plus, Users, UserPlus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { getLocationStatus } from "@/lib/locationUtils";
@@ -22,6 +24,8 @@ const MembersTab = () => {
   const [selectedGroup, setSelectedGroup] = useState<GroupData | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [createGroupOpen, setCreateGroupOpen] = useState(false);
+  const [joinGroupOpen, setJoinGroupOpen] = useState(false);
+  const [addMemberOpen, setAddMemberOpen] = useState(false);
   const [members, setMembers] = useState<any[]>([]);
 
   const fetchGroups = async () => {
@@ -159,27 +163,41 @@ const MembersTab = () => {
   if (groups.length === 0) {
     return (
       <div className="px-4 pt-2 pb-4">
-        <h1 className="text-2xl font-bold text-foreground tracking-tight mb-6">Members</h1>
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-2xl font-bold text-foreground tracking-tight">Members</h1>
+          <button
+            onClick={() => setCreateGroupOpen(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 active:bg-primary/20 transition-colors"
+          >
+            <Plus size={14} className="text-primary" />
+            <span className="text-[13px] font-medium text-primary">New Group</span>
+          </button>
+        </div>
         <div className="ios-card p-8 flex flex-col items-center gap-4 text-center">
           <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
             <Users size={28} className="text-primary" />
           </div>
           <div>
             <div className="text-[17px] font-semibold text-foreground">No groups yet</div>
-            <div className="text-[14px] text-muted-foreground mt-1">Create a group to start tracking locations with your family or team</div>
+            <div className="text-[14px] text-muted-foreground mt-1">Create a group or join one with an invite code</div>
           </div>
-          <button
-            onClick={() => setCreateGroupOpen(true)}
-            className="mt-2 px-6 py-2.5 rounded-full bg-primary text-primary-foreground text-[15px] font-medium"
-          >
-            Create Group
-          </button>
+          <div className="flex gap-3 mt-2">
+            <button
+              onClick={() => setCreateGroupOpen(true)}
+              className="px-5 py-2.5 rounded-full bg-primary text-primary-foreground text-[15px] font-medium"
+            >
+              Create Group
+            </button>
+            <button
+              onClick={() => setJoinGroupOpen(true)}
+              className="px-5 py-2.5 rounded-full bg-secondary text-foreground text-[15px] font-medium"
+            >
+              Join with Code
+            </button>
+          </div>
         </div>
-        <CreateGroupDialog
-          open={createGroupOpen}
-          onClose={() => setCreateGroupOpen(false)}
-          onCreated={fetchGroups}
-        />
+        <CreateGroupDialog open={createGroupOpen} onClose={() => setCreateGroupOpen(false)} onCreated={fetchGroups} />
+        <JoinGroupDialog open={joinGroupOpen} onClose={() => setJoinGroupOpen(false)} onJoined={fetchGroups} />
       </div>
     );
   }
@@ -196,13 +214,23 @@ const MembersTab = () => {
             const found = groups.find(gr => gr.group_id === g.group_id);
             if (found) setSelectedGroup(found);
           }}
+          onCreateGroup={() => setCreateGroupOpen(true)}
+          onJoinGroup={() => setJoinGroupOpen(true)}
         />
-        <button
-          onClick={() => setSettingsOpen(true)}
-          className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center"
-        >
-          <Settings size={16} className="text-primary" />
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setAddMemberOpen(true)}
+            className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center"
+          >
+            <UserPlus size={16} className="text-primary" />
+          </button>
+          <button
+            onClick={() => setSettingsOpen(true)}
+            className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center"
+          >
+            <Settings size={16} className="text-primary" />
+          </button>
+        </div>
       </div>
 
       <AnimatePresence mode="wait">
@@ -234,6 +262,16 @@ const MembersTab = () => {
           onClose={() => setSettingsOpen(false)}
           group={selectedGroup}
           onUpdated={() => { fetchGroups(); fetchMembers(); }}
+        />
+      )}
+      <CreateGroupDialog open={createGroupOpen} onClose={() => setCreateGroupOpen(false)} onCreated={fetchGroups} />
+      <JoinGroupDialog open={joinGroupOpen} onClose={() => setJoinGroupOpen(false)} onJoined={fetchGroups} />
+      {addMemberOpen && selectedGroup && (
+        <AddMemberDialog
+          open={addMemberOpen}
+          onClose={() => setAddMemberOpen(false)}
+          group={selectedGroup}
+          onAdded={fetchMembers}
         />
       )}
     </div>
