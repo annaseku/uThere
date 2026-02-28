@@ -74,7 +74,7 @@ const PlaceEditor = ({ open, onClose, place, onSave, onDelete }: PlaceEditorProp
               <Input
                 value={address}
                 onChange={e => setAddress(e.target.value)}
-                placeholder="e.g. 555 5th Ave New York NY"
+                placeholder="123 Abc St Carlton 3053"
                 onKeyDown={e => e.key === "Enter" && handleGeocode()}
               />
               <Button size="icon" variant="outline" onClick={handleGeocode} disabled={geocoding}>

@@ -185,7 +185,9 @@ export type Database = {
       }
       users: {
         Row: {
+          color_scheme: string | null
           created_at: string | null
+          dark_mode: boolean | null
           device_id: string | null
           email: string | null
           is_sharing_location: boolean | null
@@ -196,7 +198,9 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          color_scheme?: string | null
           created_at?: string | null
+          dark_mode?: boolean | null
           device_id?: string | null
           email?: string | null
           is_sharing_location?: boolean | null
@@ -207,7 +211,9 @@ export type Database = {
           user_id: string
         }
         Update: {
+          color_scheme?: string | null
           created_at?: string | null
+          dark_mode?: boolean | null
           device_id?: string | null
           email?: string | null
           is_sharing_location?: boolean | null

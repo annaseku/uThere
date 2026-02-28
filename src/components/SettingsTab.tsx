@@ -37,6 +37,24 @@ const SettingsTab = () => {
   const [currentTheme, setCurrentTheme] = useState(() => localStorage.getItem("color-theme") || "theme-blue");
   const [isDark, setIsDark] = useState(() => document.documentElement.classList.contains("dark"));
 
+  // Load theme from DB on mount
+  useEffect(() => {
+    if (!authUser) return;
+    supabase.from("users").select("color_scheme, dark_mode").eq("user_id", authUser.id).single().then(({ data }) => {
+      if (data) {
+        const scheme = (data as any).color_scheme || "theme-blue";
+        const dark = (data as any).dark_mode ?? false;
+        applyTheme(scheme, false);
+        if (dark !== isDark) {
+          const root = document.documentElement;
+          if (dark) root.classList.add("dark"); else root.classList.remove("dark");
+          setIsDark(dark);
+          localStorage.setItem("dark-mode", String(dark));
+        }
+      }
+    });
+  }, [authUser]);
+
   const placeGroups = privacy.reduce<Record<number, { label: string; entries: typeof privacy }>>((acc, entry) => {
     if (!acc[entry.place_id]) {
       acc[entry.place_id] = { label: entry.place_label, entries: [] };
@@ -66,24 +84,30 @@ const SettingsTab = () => {
 
   useEffect(() => { fetchGroups(); }, [authUser]);
 
-  const applyTheme = (themeId: string) => {
+  const applyTheme = (themeId: string, save = true) => {
     const root = document.documentElement;
     COLOR_SCHEMES.forEach(s => root.classList.remove(s.id));
     root.classList.add(themeId);
     setCurrentTheme(themeId);
     localStorage.setItem("color-theme", themeId);
+    if (save && authUser) {
+      supabase.from("users").update({ color_scheme: themeId } as any).eq("user_id", authUser.id);
+    }
   };
 
   const toggleDarkMode = () => {
     const root = document.documentElement;
-    if (isDark) {
-      root.classList.remove("dark");
-      localStorage.setItem("dark-mode", "false");
-    } else {
+    const newDark = !isDark;
+    if (newDark) {
       root.classList.add("dark");
-      localStorage.setItem("dark-mode", "true");
+    } else {
+      root.classList.remove("dark");
     }
-    setIsDark(!isDark);
+    localStorage.setItem("dark-mode", String(newDark));
+    setIsDark(newDark);
+    if (authUser) {
+      supabase.from("users").update({ dark_mode: newDark } as any).eq("user_id", authUser.id);
+    }
   };
 
   const handleSignOut = async () => {
