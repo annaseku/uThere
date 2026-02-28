@@ -18,41 +18,20 @@ interface GroupData {
   primary_address?: string;
 }
 
-const MembersTab = () => {
+interface MembersTabProps {
+  groups: GroupData[];
+  selectedGroup: GroupData | null;
+  setSelectedGroup: (g: GroupData | null) => void;
+  onGroupsChanged: () => void;
+}
+
+const MembersTab = ({ groups, selectedGroup, setSelectedGroup, onGroupsChanged }: MembersTabProps) => {
   const { user } = useAuth();
-  const [groups, setGroups] = useState<GroupData[]>([]);
-  const [selectedGroup, setSelectedGroup] = useState<GroupData | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [createGroupOpen, setCreateGroupOpen] = useState(false);
   const [joinGroupOpen, setJoinGroupOpen] = useState(false);
   const [addMemberOpen, setAddMemberOpen] = useState(false);
   const [members, setMembers] = useState<any[]>([]);
-
-  const fetchGroups = async () => {
-    if (!user) return;
-    const { data: memberships } = await supabase
-      .from("group_members")
-      .select("group_id, groups(name, primary_address)")
-      .eq("user_id", user.id);
-
-    if (memberships && memberships.length > 0) {
-      const mapped = memberships.map(m => {
-        const g = m.groups as any;
-        return {
-          group_id: String(m.group_id),
-          name: g?.name ?? `Group ${m.group_id}`,
-          primary_address: g?.primary_address,
-        };
-      });
-      setGroups(mapped);
-      if (!selectedGroup || !mapped.find(g => g.group_id === selectedGroup.group_id)) {
-        setSelectedGroup(mapped[0]);
-      }
-    } else {
-      setGroups([]);
-      setSelectedGroup(null);
-    }
-  };
 
   const fetchMembers = async () => {
     if (!selectedGroup || !user) {
@@ -156,7 +135,7 @@ const MembersTab = () => {
     setMembers(mapped);
   };
 
-  useEffect(() => { fetchGroups(); }, [user]);
+  // groups are managed by parent
   useEffect(() => { fetchMembers(); }, [selectedGroup]);
 
   // No groups — show empty state
@@ -196,8 +175,8 @@ const MembersTab = () => {
             </button>
           </div>
         </div>
-        <CreateGroupDialog open={createGroupOpen} onClose={() => setCreateGroupOpen(false)} onCreated={fetchGroups} />
-        <JoinGroupDialog open={joinGroupOpen} onClose={() => setJoinGroupOpen(false)} onJoined={fetchGroups} />
+        <CreateGroupDialog open={createGroupOpen} onClose={() => setCreateGroupOpen(false)} onCreated={onGroupsChanged} />
+        <JoinGroupDialog open={joinGroupOpen} onClose={() => setJoinGroupOpen(false)} onJoined={onGroupsChanged} />
       </div>
     );
   }
@@ -261,11 +240,11 @@ const MembersTab = () => {
           open={settingsOpen}
           onClose={() => setSettingsOpen(false)}
           group={selectedGroup}
-          onUpdated={() => { fetchGroups(); fetchMembers(); }}
+          onUpdated={() => { onGroupsChanged(); fetchMembers(); }}
         />
       )}
-      <CreateGroupDialog open={createGroupOpen} onClose={() => setCreateGroupOpen(false)} onCreated={fetchGroups} />
-      <JoinGroupDialog open={joinGroupOpen} onClose={() => setJoinGroupOpen(false)} onJoined={fetchGroups} />
+      <CreateGroupDialog open={createGroupOpen} onClose={() => setCreateGroupOpen(false)} onCreated={onGroupsChanged} />
+      <JoinGroupDialog open={joinGroupOpen} onClose={() => setJoinGroupOpen(false)} onJoined={onGroupsChanged} />
       {addMemberOpen && selectedGroup && (
         <AddMemberDialog
           open={addMemberOpen}
