@@ -37,24 +37,13 @@ const SettingsTab = () => {
   const [currentTheme, setCurrentTheme] = useState(() => localStorage.getItem("color-theme") || "theme-blue");
   const [isDark, setIsDark] = useState(() => document.documentElement.classList.contains("dark"));
 
-  // Sync theme from DB on mount (only override if DB has a saved value)
+  // Sync local state from DOM on mount (theme is applied by AuthContext)
   useEffect(() => {
-    if (!authUser) return;
-    supabase.from("users").select("color_scheme, dark_mode").eq("user_id", authUser.id).single().then(({ data }) => {
-      if (data) {
-        if (data.color_scheme && data.color_scheme !== currentTheme) {
-          applyTheme(data.color_scheme, false);
-        }
-        const dbDark = data.dark_mode ?? false;
-        if (dbDark !== isDark) {
-          const root = document.documentElement;
-          if (dbDark) root.classList.add("dark"); else root.classList.remove("dark");
-          setIsDark(dbDark);
-          localStorage.setItem("dark-mode", String(dbDark));
-        }
-      }
-    });
-  }, [authUser]);
+    const root = document.documentElement;
+    const saved = localStorage.getItem("color-theme") || "theme-blue";
+    setCurrentTheme(saved);
+    setIsDark(root.classList.contains("dark"));
+  }, []);
 
   const placeGroups = privacy.reduce<Record<number, { label: string; entries: typeof privacy }>>((acc, entry) => {
     if (!acc[entry.place_id]) {
