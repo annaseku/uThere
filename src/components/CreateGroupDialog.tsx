@@ -65,7 +65,7 @@ const CreateGroupDialog = ({ open, onClose, onCreated }: CreateGroupDialogProps)
           </div>
           <div>
             <label className="text-[13px] font-medium text-muted-foreground mb-1 block">Primary Address (optional)</label>
-            <Input value={address} onChange={e => setAddress(e.target.value)} placeholder="e.g. 12 Red Gum Crescent" />
+            <Input value={address} onChange={e => setAddress(e.target.value)} placeholder="123 Abc St Carlton 3053" />
           </div>
           <Button className="w-full" onClick={handleCreate} disabled={creating || !name.trim()}>
             {creating ? "Creating..." : "Create Group"}
