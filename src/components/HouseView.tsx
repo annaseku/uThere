@@ -1,10 +1,12 @@
 import { motion } from "framer-motion";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 interface HouseViewMember {
   user: {
     user_id: string;
     name?: string;
     emoji: string;
+    photo_url?: string;
   };
   status: string;
   placeName: string;
@@ -70,11 +72,12 @@ const HouseView = ({ members }: HouseViewProps) => {
             className="absolute flex flex-col items-center"
             style={pos}
           >
-            <div className="relative">
-              <div className="w-11 h-11 rounded-full bg-secondary flex items-center justify-center text-lg border-2 border-card shadow-md">
-                {member.user.emoji}
-              </div>
-              <div className={`absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-card ${statusColor(member.status)}`} />
+              <div className="relative">
+                <Avatar className="w-11 h-11 border-2 border-card shadow-md">
+                  {member.user.photo_url && <AvatarImage src={member.user.photo_url} alt={member.user.name} />}
+                  <AvatarFallback className="bg-secondary text-lg">{member.user.emoji}</AvatarFallback>
+                </Avatar>
+                <div className={`absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-card ${statusColor(member.status)}`} />
             </div>
           </motion.div>
         );
@@ -91,11 +94,12 @@ const HouseView = ({ members }: HouseViewProps) => {
             className="absolute flex flex-col items-center"
             style={pos}
           >
-            <div className="relative">
-              <div className="w-11 h-11 rounded-full bg-secondary flex items-center justify-center text-lg border-2 border-card shadow-md opacity-70">
-                {member.user.emoji}
-              </div>
-              <div className={`absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-card ${statusColor(member.status)}`} />
+              <div className="relative">
+                <Avatar className="w-11 h-11 border-2 border-card shadow-md opacity-70">
+                  {member.user.photo_url && <AvatarImage src={member.user.photo_url} alt={member.user.name} />}
+                  <AvatarFallback className="bg-secondary text-lg">{member.user.emoji}</AvatarFallback>
+                </Avatar>
+                <div className={`absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-card ${statusColor(member.status)}`} />
             </div>
           </motion.div>
         );

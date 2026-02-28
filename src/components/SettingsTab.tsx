@@ -37,19 +37,20 @@ const SettingsTab = () => {
   const [currentTheme, setCurrentTheme] = useState(() => localStorage.getItem("color-theme") || "theme-blue");
   const [isDark, setIsDark] = useState(() => document.documentElement.classList.contains("dark"));
 
-  // Load theme from DB on mount
+  // Sync theme from DB on mount (only override if DB has a saved value)
   useEffect(() => {
     if (!authUser) return;
     supabase.from("users").select("color_scheme, dark_mode").eq("user_id", authUser.id).single().then(({ data }) => {
       if (data) {
-        const scheme = (data as any).color_scheme || "theme-blue";
-        const dark = (data as any).dark_mode ?? false;
-        applyTheme(scheme, false);
-        if (dark !== isDark) {
+        if (data.color_scheme && data.color_scheme !== currentTheme) {
+          applyTheme(data.color_scheme, false);
+        }
+        const dbDark = data.dark_mode ?? false;
+        if (dbDark !== isDark) {
           const root = document.documentElement;
-          if (dark) root.classList.add("dark"); else root.classList.remove("dark");
-          setIsDark(dark);
-          localStorage.setItem("dark-mode", String(dark));
+          if (dbDark) root.classList.add("dark"); else root.classList.remove("dark");
+          setIsDark(dbDark);
+          localStorage.setItem("dark-mode", String(dbDark));
         }
       }
     });
@@ -91,7 +92,7 @@ const SettingsTab = () => {
     setCurrentTheme(themeId);
     localStorage.setItem("color-theme", themeId);
     if (save && authUser) {
-      supabase.from("users").update({ color_scheme: themeId } as any).eq("user_id", authUser.id);
+      supabase.from("users").update({ color_scheme: themeId }).eq("user_id", authUser.id);
     }
   };
 
@@ -106,7 +107,7 @@ const SettingsTab = () => {
     localStorage.setItem("dark-mode", String(newDark));
     setIsDark(newDark);
     if (authUser) {
-      supabase.from("users").update({ dark_mode: newDark } as any).eq("user_id", authUser.id);
+      supabase.from("users").update({ dark_mode: newDark }).eq("user_id", authUser.id);
     }
   };
 
