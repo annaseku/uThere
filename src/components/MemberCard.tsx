@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { MapPin } from "lucide-react";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 interface MemberCardProps {
   member: {
@@ -28,9 +29,10 @@ const MemberCard = ({ member, index }: MemberCardProps) => {
       className="flex items-center gap-3.5 px-4 py-3.5 bg-card active:bg-accent transition-colors"
     >
       <div className="relative flex-shrink-0">
-        <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center text-xl">
-          {member.user.emoji}
-        </div>
+        <Avatar className="w-12 h-12">
+          {member.user.photo_url && <AvatarImage src={member.user.photo_url} alt={member.user.name} />}
+          <AvatarFallback className="bg-secondary text-xl">{member.user.emoji}</AvatarFallback>
+        </Avatar>
         <div className={`absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full border-2 border-card ${statusColor(member.status)}`} />
       </div>
       <div className="flex-1 min-w-0">

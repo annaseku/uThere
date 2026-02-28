@@ -4,6 +4,7 @@ import BottomTabBar from "@/components/BottomTabBar";
 import MembersTab from "@/components/MembersTab";
 import ProfileTab from "@/components/ProfileTab";
 import SettingsTab from "@/components/SettingsTab";
+import { useGeolocation } from "@/hooks/useGeolocation";
 
 const tabs: Record<string, React.ComponentType> = {
   members: MembersTab,
@@ -13,6 +14,7 @@ const tabs: Record<string, React.ComponentType> = {
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState("members");
+  useGeolocation();
   const ActiveComponent = tabs[activeTab];
 
   return (
