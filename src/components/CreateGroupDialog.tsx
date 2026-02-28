@@ -22,29 +22,18 @@ const CreateGroupDialog = ({ open, onClose, onCreated }: CreateGroupDialogProps)
     if (!name.trim() || !user) return;
     setCreating(true);
 
-    const { data: group, error } = await supabase
-      .from("groups")
-      .insert({ name: name.trim(), primary_address: address.trim() || null })
-      .select()
-      .single();
+    const { data, error } = await supabase.rpc("create_group_with_admin", {
+      _name: name.trim(),
+      _primary_address: address.trim() || null,
+    });
 
-    if (error || !group) {
+    if (error) {
       toast.error("Failed to create group");
       setCreating(false);
       return;
     }
 
-    // Add self as admin
-    const { error: memberError } = await supabase
-      .from("group_members")
-      .insert({ group_id: group.group_id, user_id: user.id, role: "admin" });
-
-    if (memberError) {
-      toast.error("Group created but failed to add you as admin");
-    } else {
-      toast.success("Group created!");
-    }
-
+    toast.success("Group created!");
     setName("");
     setAddress("");
     setCreating(false);

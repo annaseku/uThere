@@ -230,6 +230,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_group_with_admin: {
+        Args: { _name: string; _primary_address?: string }
+        Returns: number
+      }
       is_group_member: {
         Args: { _group_id: number; _user_id: string }
         Returns: boolean
