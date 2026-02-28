@@ -54,18 +54,21 @@ export type Database = {
         Row: {
           created_at: string | null
           group_id: number
+          invite_code: string
           name: string
           primary_address: string | null
         }
         Insert: {
           created_at?: string | null
           group_id?: number
+          invite_code?: string
           name: string
           primary_address?: string | null
         }
         Update: {
           created_at?: string | null
           group_id?: number
+          invite_code?: string
           name?: string
           primary_address?: string | null
         }
@@ -238,6 +241,7 @@ export type Database = {
         Args: { _group_id: number; _user_id: string }
         Returns: boolean
       }
+      join_group_by_code: { Args: { _code: string }; Returns: number }
     }
     Enums: {
       [_ in never]: never

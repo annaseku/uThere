@@ -1,4 +1,4 @@
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Plus, LogIn } from "lucide-react";
 import { Group } from "@/lib/mockData";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useRef, useEffect } from "react";
@@ -7,9 +7,11 @@ interface GroupSelectorProps {
   groups: Group[];
   selectedGroup: Group;
   onGroupChange: (group: Group) => void;
+  onCreateGroup?: () => void;
+  onJoinGroup?: () => void;
 }
 
-const GroupSelector = ({ groups, selectedGroup, onGroupChange }: GroupSelectorProps) => {
+const GroupSelector = ({ groups, selectedGroup, onGroupChange, onCreateGroup, onJoinGroup }: GroupSelectorProps) => {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -44,16 +46,14 @@ const GroupSelector = ({ groups, selectedGroup, onGroupChange }: GroupSelectorPr
             transition={{ duration: 0.18 }}
             className="absolute top-full left-0 mt-2 ios-card-elevated overflow-hidden z-50 min-w-[220px]"
           >
-            {groups.map((group, i) => (
+            {groups.map((group) => (
               <button
                 key={group.group_id}
                 onClick={() => {
                   onGroupChange(group);
                   setOpen(false);
                 }}
-                className={`w-full text-left px-4 py-3 flex items-center justify-between transition-colors ${
-                  i < groups.length - 1 ? "ios-separator" : ""
-                } ${
+                className={`w-full text-left px-4 py-3 flex items-center justify-between transition-colors ios-separator ${
                   selectedGroup.group_id === group.group_id
                     ? "bg-primary/5"
                     : "hover:bg-accent active:bg-accent"
@@ -65,6 +65,24 @@ const GroupSelector = ({ groups, selectedGroup, onGroupChange }: GroupSelectorPr
                 )}
               </button>
             ))}
+            {onCreateGroup && (
+              <button
+                onClick={() => { onCreateGroup(); setOpen(false); }}
+                className="w-full text-left px-4 py-3 flex items-center gap-2.5 hover:bg-accent active:bg-accent transition-colors ios-separator"
+              >
+                <Plus size={16} className="text-primary" />
+                <span className="text-[15px] font-medium text-primary">New Group</span>
+              </button>
+            )}
+            {onJoinGroup && (
+              <button
+                onClick={() => { onJoinGroup(); setOpen(false); }}
+                className="w-full text-left px-4 py-3 flex items-center gap-2.5 hover:bg-accent active:bg-accent transition-colors"
+              >
+                <LogIn size={16} className="text-primary" />
+                <span className="text-[15px] font-medium text-primary">Join with Code</span>
+              </button>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
