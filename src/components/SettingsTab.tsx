@@ -59,25 +59,25 @@ const SettingsTab = ({ groups, onGroupsChanged }: SettingsTabProps) => {
     return acc;
   }, {});
 
-  const applyTheme = (themeId: string) => {
+  const applyTheme = async (themeId: string) => {
     const root = document.documentElement;
     COLOR_SCHEMES.forEach(s => root.classList.remove(s.id));
     root.classList.add(themeId);
     setCurrentTheme(themeId);
     localStorage.setItem("color-theme", themeId);
     if (authUser) {
-      supabase.from("users").update({ color_scheme: themeId }).eq("user_id", authUser.id);
+      await supabase.from("users").update({ color_scheme: themeId }).eq("user_id", authUser.id);
     }
   };
 
-  const toggleDarkMode = () => {
+  const toggleDarkMode = async () => {
     const root = document.documentElement;
     const newDark = !isDark;
     if (newDark) root.classList.add("dark"); else root.classList.remove("dark");
     localStorage.setItem("dark-mode", String(newDark));
     setIsDark(newDark);
     if (authUser) {
-      supabase.from("users").update({ dark_mode: newDark }).eq("user_id", authUser.id);
+      await supabase.from("users").update({ dark_mode: newDark }).eq("user_id", authUser.id);
     }
   };
 
