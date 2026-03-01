@@ -77,7 +77,8 @@ export function useCurrentUser() {
     if (error) return null;
     
     const { data: { publicUrl } } = supabase.storage.from("avatars").getPublicUrl(path);
-    await updateUser({ photo_url: publicUrl });
+    const urlWithCacheBust = `${publicUrl}?t=${Date.now()}`;
+    await updateUser({ photo_url: urlWithCacheBust });
     return publicUrl;
   };
 
