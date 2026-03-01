@@ -5,6 +5,7 @@ import { Camera, MapPin, ChevronRight, Plus } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import PlaceEditor from "./PlaceEditor";
 import EditFieldDialog from "./EditFieldDialog";
+import AvatarCropDialog from "./AvatarCropDialog";
 import { toast } from "sonner";
 
 const ProfileTab = () => {
@@ -15,6 +16,7 @@ const ProfileTab = () => {
   const [editingField, setEditingField] = useState<{ label: string; key: string; value: string } | null>(null);
   const [placeEditorOpen, setPlaceEditorOpen] = useState(false);
   const [editingPlace, setEditingPlace] = useState<Place | null>(null);
+  const [cropSrc, setCropSrc] = useState<string | null>(null);
 
   const profileFields = [
     { label: "Name", key: "name", value: user.name },
@@ -24,9 +26,18 @@ const ProfileTab = () => {
 
   const handleAvatarClick = () => fileInputRef.current?.click();
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => setCropSrc(reader.result as string);
+    reader.readAsDataURL(file);
+    e.target.value = "";
+  };
+
+  const handleCropComplete = async (blob: Blob) => {
+    setCropSrc(null);
+    const file = new File([blob], "avatar.jpg", { type: "image/jpeg" });
     const url = await uploadAvatar(file);
     if (url) toast.success("Photo updated!");
     else toast.info("Photo saved (sign in to persist)");
@@ -147,6 +158,15 @@ const ProfileTab = () => {
           label={editingField.label}
           value={editingField.value}
           onSave={handleFieldSave}
+        />
+      )}
+
+      {cropSrc && (
+        <AvatarCropDialog
+          open={!!cropSrc}
+          imageSrc={cropSrc}
+          onClose={() => setCropSrc(null)}
+          onCropComplete={handleCropComplete}
         />
       )}
 
