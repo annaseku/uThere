@@ -8,4 +8,3 @@ Please feel free to make an account and use the app! Or else, have a look at the
 ![IMG_2409](https://github.com/user-attachments/assets/a59be958-7b44-4fa5-9950-d67fbd71c182)
 ![IMG_2410](https://github.com/user-attachments/assets/82de9fc2-431f-4958-af86-b4337a481018)
 ![IMG_2412](https://github.com/user-attachments/assets/69fbf095-acab-434a-ae6c-c85c097fb566)
-![IMG_2411](https://github.com/user-attachments/assets/79ec4b24-d0ec-4494-81d7-a5204656a4cd)
